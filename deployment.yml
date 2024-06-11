@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  namespace: diplomska
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: web
+    containers:
+    - name: web-app-pod
+      image: jungelr/diplomska
+      restartPolicy: always
+      resources:
+      limits:
+        memory: 512Mi
+        cpu: "1"
+      requests:
+        memory: 256Mi
+        cpu: "0.2"
+      ports:
+        - containerPort: 8080
+      env:
+        - name: server.ssl.key-store-password
+          valueFrom: 
+            secretKeyRef: 
+              name: mysecret 
+              key: key_password
+        - name: server.ssl.key-password
+          valueFrom: 
+            secretKeyRef: 
+              name: mysecret 
+              key: key_password 
+        - name: server.ssl.key-store
+          valueFrom: 
+            configMapKeyRef: 
+              name: myconfig 
+              key: store 
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom: 
+            configMapKeyRef: 
+              name: myconfig 
+              key: profile 
+        - name: spring.datasource.username
+          valueFrom: 
+            secretKeyRef: 
+              name: mysecret 
+              key: username 
+        - name: spring.datasource.password
+          valueFrom: 
+            secretKeyRef: 
+              name: mysecret 
+              key: password
+        - name: spring.datasource.url
+          valueFrom: 
+            configMapKeyRef: 
+              name: myconfig 
+              key: db-url 
